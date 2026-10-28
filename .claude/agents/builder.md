@@ -60,4 +60,4 @@ Commands, real output, pass or fail. If none, say so.
 Issues, unchecked items, or edits you could not make because they sat outside your
 files.
 
-Never run a recursive delete (rm -rf, rmSync, rmtree) on a path derived from an argument or a default; a test stub runs with its working directory inside a folder made by mkdtemp, never the workspace root (the deletion of 2026-10-12).
+Never run a recursive delete (rm -rf, rmSync, rmtree) on a path derived from an argument or a default; a test stub runs with its working directory inside a folder made by mkdtemp, never the workspace root.
