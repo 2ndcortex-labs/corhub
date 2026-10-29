@@ -5,6 +5,7 @@
 - Confirm with `pwd`. If not inside `corhub/nexus/`, stop and relaunch from there. Nothing authored elsewhere: the object is the only folder a session of the instance is launched in, so a session elsewhere should be considered invalid.
 - Load order you should have inherited: a root CLAUDE.md (if existing), `corhub/nexus/CLAUDE.md` → this file → root beacon → user instructions. (The root beacon is a wrong-door advisory; in the object, read it as confirmation.) Finally, if provided, a `corhub/nexus/CLAUDE.md` and/or `corhub/nexus/CLAUDE.local.md`. 
 - Ensure `corhub/nexus/roadwork` exists and contains at least a scaffold of a number of folders including `corhub/nexus/todo`. If not, scaffold the folder per https://github.com/2ndcortex-labs/roadwork/tree/main/scaffold.
+- Ensure the following files, reader.md, finder.md, explore.md, researcher.md, builder.md, reviewer.md are present in the `corhub/.claude/agents/` folder. If not obtain from https://github.com/2ndcortex-labs/roadwork/tree/main/.claude/agents/ .
 - Ensure the Roadwork Constitution is properly placed at; `corhub/.claude/rules/roadwork-constitution.md`
 - Ensure the Roadwork skills AND the unlazy skill are found at; `corhub/.claude/rules/skills`
 - Any missing Roadwork rules, skills and scripts can be found at https://github.com/2ndcortex-labs/roadwork/tree/main/
