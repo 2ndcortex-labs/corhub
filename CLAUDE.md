@@ -63,7 +63,6 @@ Record;
     nexus/                     the object: instance-local, gitignored, no remote
       CLAUDE.md                statement of authority (seated repos)
       roadwork/                work register, fetch-only clone
-      reference/repos/         instance reference repos: read-only
   <repos being worked>/ ...    clones of repos under authority of this project, siblings of corhub/
 ```
 
