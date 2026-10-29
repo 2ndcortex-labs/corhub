@@ -9,7 +9,7 @@
 - Ensure the Roadwork Constitution is properly placed at; `corhub/.claude/rules/roadwork-constitution.md`
 - Ensure the Roadwork skills AND the unlazy skill are found at; `corhub/.claude/rules/skills`
 - Any missing Roadwork rules, skills and scripts can be found at https://github.com/2ndcortex-labs/roadwork/tree/main/
-- A missing Unlazy skill can be found at https://github.com/Leonxlnx/unlazy
+- A missing unlazy skill can be found at https://github.com/Leonxlnx/unlazy
 - If anything is inconsistent with the herein Prerequisites order notify the operator now and regularly until addressed .
   
 ## Hard rules
