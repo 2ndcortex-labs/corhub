@@ -1,0 +1,58 @@
+name: vendor
+
+# verify: on every push to main and every pull request, the vendored files must match vendor.lock.
+# behind: weekly (and on demand), open or update an issue when an upstream has moved past its pin.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bin/vendor-sync verify
+
+  behind:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+      - id: check
+        run: |
+          rc=0
+          bin/vendor-sync check > report.txt || rc=$?
+          cat report.txt
+          case "$rc" in
+            0) echo "behind=false" >> "$GITHUB_OUTPUT" ;;
+            2) echo "behind=true" >> "$GITHUB_OUTPUT" ;;
+            *) exit "$rc" ;;
+          esac
+      - if: steps.check.outputs.behind == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TITLE: Vendored upstreams are behind
+        run: |
+          {
+            echo 'An upstream has moved past its pin in `vendor.lock`:'
+            echo
+            sed 's/^/- /' report.txt
+            echo
+            echo 'To take an update: run `bin/vendor-sync update <name>` in a working clone, review, and open a pull request.'
+          } > body.md
+          n="$(gh issue list --state open --search "in:title \"$TITLE\"" --json number --jq '.[0].number // empty')"
+          if [ -n "$n" ]; then gh issue comment "$n" --body-file body.md
+          else gh issue create --title "$TITLE" --body-file body.md
+          fi

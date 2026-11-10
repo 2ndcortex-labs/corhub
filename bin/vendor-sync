@@ -1,0 +1,211 @@
+#!/bin/sh
+# Keep corhub's vendored upstream files in step with the pins in vendor.lock.
+#
+# Usage:
+#   vendor-sync check                     compare each pin with its upstream head; exit 2 if any is behind
+#   vendor-sync verify                    confirm the vendored files match the pins and the layout rules
+#   vendor-sync update <name> [<commit>]  re-vendor one upstream (default: its head), move the pin, verify
+#
+# Run it in an Operator's working clone of corhub, never inside an Instance.
+# update commits nothing: review the result, then commit and open a pull request.
+# Nothing is deleted. Replaced files are moved into _to_delete/<timestamp>/, and
+# upstream clones are left in the temp directory for the OS to clear.
+#
+# Vendored paths:
+#   roadwork  rules/roadwork-constitution.md -> .claude/rules/
+#             agents/<six workers>.md        -> .claude/agents/
+#             skills/roadwork-*/             -> .claude/skills/
+#             skeleton/                      -> skeleton/nexus/roadwork/
+#   unlazy    the directory holding SKILL.md -> .claude/skills/unlazy/
+set -eu
+
+corhub="$(cd "$(dirname "$0")/.." && pwd -P)"
+lock="$corhub/vendor.lock"
+workers="reader finder explorer researcher builder reviewer"
+ignored="/.gitkeep CLAUDE.local.md _to_delete/ .claude/ .unlazy/ .unlazy-hook-state.json"
+stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+cd "$corhub"
+
+die() { echo "vendor-sync: $*" >&2; exit 1; }
+names() { awk '!/^#/ && NF == 3 { print $1 }' "$lock"; }
+url() { awk -v n="$1" '!/^#/ && $1 == n { print $2 }' "$lock"; }
+pin() { awk -v n="$1" '!/^#/ && $1 == n { print $3 }' "$lock"; }
+head_of() { git ls-remote "$(url "$1")" HEAD | awk '{ print $1 }'; }
+
+# fetch <name> <commit>: clone the upstream at that commit; print the clone's path.
+fetch() {
+  tmp="$(mktemp -d "${TMPDIR:-/tmp}/vendor-$1.XXXXXX")"
+  git clone -q "$(url "$1")" "$tmp/src" || die "clone failed: $1"
+  git -C "$tmp/src" -c advice.detachedHead=false checkout -q "$2" || die "no commit $2 in $1"
+  echo "$tmp/src"
+}
+
+# unlazy_dir <clone>: the directory holding the unlazy skill.
+unlazy_dir() {
+  if [ -f "$1/SKILL.md" ]; then echo "$1"
+  elif [ -f "$1/unlazy/SKILL.md" ]; then echo "$1/unlazy"
+  else die "unlazy: no SKILL.md at the repo root or in unlazy/"
+  fi
+}
+
+# park <path>: move an existing path out of the way, into _to_delete/.
+park() {
+  [ -e "$1" ] || return 0
+  dest="_to_delete/$stamp/$1"
+  mkdir -p "$(dirname "$dest")"
+  mv "$1" "$dest"
+}
+
+# copytree <src dir> <dst dir>: copy a tree, never its top-level .git.
+copytree() {
+  mkdir -p "$2"
+  (cd "$1" && tar -cf - --exclude=./.git .) | (cd "$2" && tar -xf -)
+}
+
+write_manifest() {
+  {
+    echo '#roadwork'
+    for d in .claude/skills/roadwork-*/; do basename "$d"; done | LC_ALL=C sort
+    echo '#adjacent'
+    echo unlazy
+  } > .claude/skills/MANIFEST
+}
+
+roadwork_skills() { sed -n '/^#roadwork$/,/^#adjacent$/p' .claude/skills/MANIFEST | grep -v '^#' || true; }
+
+# scan: every line in the Roadwork skills that may invoke git or gh, or spawn a process.
+scan() {
+  for s in $(roadwork_skills); do
+    grep -rnE '(^|[^A-Za-z0-9_.-])(git|gh)( |$)' ".claude/skills/$s/" || true
+    grep -rnE 'subprocess|exec|spawn|system\(' ".claude/skills/$s/" || true
+  done | LC_ALL=C sort -u
+}
+
+sync_roadwork() {
+  src="$1"
+  [ -f "$src/rules/roadwork-constitution.md" ] || die "roadwork: rules/roadwork-constitution.md missing upstream"
+  [ -f "$src/skeleton/config.json" ] || die "roadwork: skeleton/config.json missing upstream"
+  for w in $workers; do [ -f "$src/agents/$w.md" ] || die "roadwork: agents/$w.md missing upstream"; done
+  ls -d "$src"/skills/roadwork-*/ > /dev/null 2>&1 || die "roadwork: no skills/roadwork-*/ upstream"
+
+  park .claude/rules/roadwork-constitution.md
+  mkdir -p .claude/rules .claude/agents .claude/skills skeleton/nexus
+  cp -p "$src/rules/roadwork-constitution.md" .claude/rules/
+  for w in $workers; do park ".claude/agents/$w.md"; cp -p "$src/agents/$w.md" .claude/agents/; done
+  for d in .claude/skills/roadwork-*/; do [ -d "$d" ] && park "${d%/}"; done
+  for d in "$src"/skills/roadwork-*/; do copytree "$d" ".claude/skills/$(basename "$d")"; done
+  park skeleton/nexus/roadwork
+  copytree "$src/skeleton" skeleton/nexus/roadwork
+
+  for f in "$src"/agents/*.md; do
+    w="$(basename "$f" .md)"
+    case " $workers " in *" $w "*) ;; *) echo "note: upstream agent '$w' is not vendored; CLAUDE.md names six Workers" ;; esac
+  done
+}
+
+sync_unlazy() {
+  src="$(unlazy_dir "$1")"
+  park .claude/skills/unlazy
+  copytree "$src" .claude/skills/unlazy
+}
+
+cmd_check() {
+  behind=0
+  for n in $(names); do
+    p="$(pin "$n")"; h="$(head_of "$n")"
+    [ -n "$h" ] || die "cannot read upstream head: $n"
+    if [ "$p" = "$h" ]; then echo "$n: current at $p"
+    else echo "$n: behind. pinned $p, upstream head $h. $(url "$n")/compare/$p...$h"; behind=1
+    fi
+  done
+  [ "$behind" -eq 0 ] || exit 2
+}
+
+cmd_verify() {
+  fail=0
+  bad() { echo "FAIL: $*"; fail=1; }
+
+  rw="$(fetch roadwork "$(pin roadwork)")"
+  ul="$(unlazy_dir "$(fetch unlazy "$(pin unlazy)")")"
+
+  # Byte-identical to the pins.
+  diff -q "$rw/rules/roadwork-constitution.md" .claude/rules/roadwork-constitution.md > /dev/null 2>&1 || bad "constitution differs from the pin"
+  for w in $workers; do
+    diff -q "$rw/agents/$w.md" ".claude/agents/$w.md" > /dev/null 2>&1 || bad "agent $w.md differs from the pin"
+  done
+  for d in "$rw"/skills/roadwork-*/; do
+    s="$(basename "$d")"
+    diff -r "$d" ".claude/skills/$s" > /dev/null 2>&1 || bad "skill $s differs from the pin"
+  done
+  diff -r "$rw/skeleton" skeleton/nexus/roadwork > /dev/null 2>&1 || bad "skeleton/nexus/roadwork differs from the pin"
+  diff -r -x .git "$ul" .claude/skills/unlazy > /dev/null 2>&1 || bad "unlazy differs from the pin"
+
+  # Agents: exactly the six, none with model: frontmatter.
+  want="$(for w in $workers; do echo "$w.md"; done | LC_ALL=C sort)"
+  [ "$(find .claude/agents -mindepth 1 -maxdepth 1 -exec basename {} \; | LC_ALL=C sort)" = "$want" ] || bad ".claude/agents does not hold exactly the six Worker files"
+  m="$(grep -l '^model:' .claude/agents/*.md || true)"
+  [ -z "$m" ] || bad "model: frontmatter in: $m"
+
+  # MANIFEST: matches upstream and the directories on disk.
+  up="$(for d in "$rw"/skills/roadwork-*/; do basename "$d"; done | LC_ALL=C sort)"
+  [ "$(roadwork_skills)" = "$up" ] || bad "MANIFEST #roadwork does not match the pinned upstream skills"
+  listed="$(grep -v '^#' .claude/skills/MANIFEST | LC_ALL=C sort)"
+  ondisk="$(find .claude/skills -mindepth 1 -maxdepth 1 ! -name MANIFEST -exec basename {} \; | LC_ALL=C sort)"
+  [ "$listed" = "$ondisk" ] || bad "MANIFEST does not match the entries in .claude/skills"
+  for s in $listed; do [ -f ".claude/skills/$s/SKILL.md" ] || bad "skill $s has no SKILL.md"; done
+  if grep -qE '^$| $' .claude/skills/MANIFEST; then bad "MANIFEST has a blank line or trailing whitespace"; fi
+
+  # No .git entry anywhere but the repository's own.
+  g="$(find . -name .git -not -path ./.git)"
+  [ -z "$g" ] || bad "stray .git: $g"
+
+  # Skeleton checklist.
+  [ "$(cat skeleton/nexus/CLAUDE.md 2> /dev/null)" = '## Seated' ] || bad "skeleton/nexus/CLAUDE.md is not an empty Seated list"
+  for e in $ignored; do grep -qxF -- "$e" skeleton/nexus/.gitignore || bad "skeleton/nexus/.gitignore lacks $e"; done
+  for w in $workers; do grep -q "\"subagent-$w\"" skeleton/nexus/roadwork/config.json || bad "skeleton config.json lacks subagent-$w"; done
+  for k in docs docs/context docs/history; do [ -f "skeleton/nexus/$k/.gitkeep" ] || bad "skeleton/nexus/$k/.gitkeep missing"; done
+  [ ! -e skeleton/nexus/.gitkeep ] || bad "skeleton/nexus/.gitkeep must not exist"
+
+  [ "$fail" -eq 0 ] || exit 1
+  echo "verify: ok. roadwork $(pin roadwork), unlazy $(pin unlazy)"
+}
+
+cmd_update() {
+  n="${1:-}"
+  [ -n "$n" ] || die "usage: vendor-sync update <name> [<commit>]"
+  [ -n "$(url "$n")" ] || die "unknown upstream: $n"
+  old="$(pin "$n")"
+  new="${2:-$(head_of "$n")}"
+  [ -n "$new" ] || die "cannot read upstream head: $n"
+  src="$(fetch "$n" "$new")"
+  new="$(git -C "$src" rev-parse HEAD)"
+
+  before="$(mktemp "${TMPDIR:-/tmp}/vendor-scan.XXXXXX")"; after="$(mktemp "${TMPDIR:-/tmp}/vendor-scan.XXXXXX")"
+  scan > "$before"
+  case "$n" in
+    roadwork) sync_roadwork "$src" ;;
+    unlazy) sync_unlazy "$src" ;;
+    *) die "no sync rule for upstream: $n" ;;
+  esac
+  write_manifest
+  awk -v n="$n" -v c="$new" '!/^#/ && $1 == n { $3 = c } { print }' "$lock" > "$lock.new" && mv "$lock.new" "$lock"
+  scan > "$after"
+
+  echo "$n: $old -> $new"
+  echo "upstream changes: $(url "$n")/compare/$old...$new"
+  echo "replaced files parked in: _to_delete/$stamp/"
+  echo "new lines that may invoke git or gh or spawn a process (review each):"
+  LC_ALL=C comm -13 "$before" "$after" | sed 's/^/  /'
+  cmd_verify
+  o="$(printf %.7s "$old")"; c="$(printf %.7s "$new")"
+  echo "review 'git status' and 'git diff', check CLAUDE.md still names the right paths, then commit:"
+  echo "  git add -A .claude skeleton vendor.lock && git commit -m \"vendor: $n $o..$c\""
+}
+
+[ -f "$lock" ] || die "missing $lock"
+case "${1:-}" in
+  check) cmd_check ;;
+  verify) cmd_verify ;;
+  update) shift; cmd_update "$@" ;;
+  *) sed -n '2,8p' "$0" | sed 's/^# \{0,1\}//'; exit 64 ;;
+esac
