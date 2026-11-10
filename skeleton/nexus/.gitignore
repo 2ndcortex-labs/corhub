@@ -1,0 +1,6 @@
+/.gitkeep
+CLAUDE.local.md
+_to_delete/
+.claude/
+.unlazy/
+.unlazy-hook-state.json

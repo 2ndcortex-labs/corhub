@@ -1,0 +1,2 @@
+Maps — one `<destination-slug>.md` per map: the way to one destination, one map per destination (before agents, process, stack, judgements, inputs), in the fixed form `/roadwork-map` writes, drawing on guidebooks by copying their relevant parts in; an item names its map by a **Map:** line. A retired map moves to `archive/` by hand.
+A document received in chat or by path is saved beside its map as `<map-slug>.source.md`, verbatim. Road plans law: the register rule (the Maps bullet).

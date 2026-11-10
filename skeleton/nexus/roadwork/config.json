@@ -1,0 +1,14 @@
+{
+  "notify-url": "",
+  "status-url": "",
+  "notify-token": "",
+  "status-token": "",
+  "standards-folders": [],
+  "subagent-reader": "",
+  "subagent-finder": "",
+  "subagent-explorer": "",
+  "subagent-researcher": "",
+  "subagent-builder": "",
+  "subagent-reviewer": "",
+  "project-root": ""
+}

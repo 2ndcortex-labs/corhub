@@ -1,0 +1,1 @@
+Context — one `<item-name>.md` per shipped spec, copied whole by `/roadwork-verify-and-archive` at archiving under a dated first line: the decision records of this project's road plans. Written by that skill alone, never edited by hand and never deleted; the item keeps its own spec in its `archive/` folder too. Road plans law: the register rule (the register bullet).
