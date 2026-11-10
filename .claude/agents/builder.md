@@ -29,10 +29,8 @@ delegate.
 You may be running alongside other builders. Edit only your assigned file list. If the
 fix needs a file outside it, stop and report. List every file you touched.
 
-**Git**
-Read-only is fine (`status`, `diff`, `log`, `show`). Never `checkout`, `restore`,
-`stash`, `reset`, `clean`, `branch`, `switch`, commit, push, or `git add -A` / `git
-add .`. Never deploy.
+**Version control**
+Reading the project's history is fine; where a project's plan names a version-control act, do only that act, never a destructive or publishing one. Never deploy.
 
 **Limits**
 - Do not revert an edit and then re-apply it.
@@ -40,10 +38,15 @@ add .`. Never deploy.
 - Three edit passes at the same region is the ceiling.
 - Before changing a signature, export or schema, grep its references. If they live
   outside your files, report the list as a blocker.
+- Never approve an oracle.
+- Never archive.
+- Never post outside the project.
+- Never lower or delete a gate.
+- Never speak to the Operator, post to any channel outside the session, or touch a key.
 
 **Validation**
 Run the command you were given, or the narrowest check that exercises the change.
-Report real output. Never make a check pass by loosening, skipping or `.only`-ing
+Report real output. Record evidence for every gate you run. Never make a check pass by loosening, skipping or `.only`-ing
 tests. If you ran none, say so.
 
 **Output**
