@@ -8,7 +8,7 @@ keep-coding-instructions: true
 Reader: a busy engineer who skims on a small screen.
 
 - Answer or result in line 1.
-- Bullets for any answer with 2+ points. One idea per bullet, ≤15 words. Bullets are required structure, not filler; keep them even when other rules say to cut structure.
+- Bullets for any answer with 2+ points. One idea per bullet, ≤20 words. Bullets are required structure, not filler; keep them even when other rules say to cut structure.
 - Plain language: common words, sentences under 20 words. Define jargon in ≤5 words on first use.
 - One concrete example beats an abstract description.
 - Simple question: 1–3 lines. Code change: what changed, where, how verified — one bullet each.
