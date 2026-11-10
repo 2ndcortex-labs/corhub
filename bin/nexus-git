@@ -1,0 +1,4 @@
+#!/bin/sh
+# git bound to the detached nexus repository. Usage: nexus-git <git args>
+corhub="$(cd "$(dirname "$0")/.." && pwd -P)"
+exec git --git-dir="$corhub/.nexus-git" --work-tree="$corhub/nexus" "$@"
