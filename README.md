@@ -36,7 +36,7 @@ A project's own files do not live in this repository. They live in a separate re
    cd <root>/corhub/nexus && claude
    ```
 
-On first launch the session asks for the `nexus-` repository URL, sets up the project's git, copies the skeleton into `nexus/`, and pushes. Do not create anything in `nexus/` yourself beforehand.
+The session runs its startup checks on your first message, whatever that message is. On first launch it asks for the `nexus-` repository URL, sets up the project's git, copies the skeleton into `nexus/`, and pushes. Do not create anything in `nexus/` yourself beforehand.
 
 To join a project that already exists, do the same steps and give the existing `nexus-` URL. The session checks the project out and asks you to relaunch.
 
@@ -44,7 +44,7 @@ To join a project that already exists, do the same steps and give the existing `
 
 - Always launch from `<root>/corhub/nexus/`. Add `--resume` to continue an earlier session.
 - Claude Code asks permission the first time a session reaches a folder outside `nexus/`, such as a code repository. Approve what the work needs.
-- Each launch pulls corhub and runs eight startup checks before any work. If one fails, the session says which and what it needs from you.
+- Each launch pulls corhub and runs eight startup checks on your first message, before any work. If one fails, the session says which and what it needs from you.
 - Never edit files in `corhub/` on an installed machine, apart from `nexus/`. The next launch detects the change and halts. Changes to corhub are made in this repository and reach every installation by pull.
 
 ## How the project is versioned
@@ -66,7 +66,7 @@ From inside `nexus/`, a bare `git` command addresses corhub, not the project. Us
 | `.claude/rules/` | The Roadwork constitution. |
 | `.claude/skills/` | Nineteen Roadwork skills and the unlazy skill. `MANIFEST` lists them. |
 | `.claude/agents/` | Six subagents: reader, finder, explorer, researcher, builder, reviewer. |
-| `.claude/output-styles/`, `.claude/settings.json` | The "Terse bullets" response style. |
+| `.claude/output-styles/` | The "Terse bullets" response style. Select it once per installation with `/output-style Terse bullets`. |
 | `bin/nexus-git` | Git wrapper for the project repository. |
 | `bin/vendor-sync` | Keeps the vendored upstream files in step with `vendor.lock`. |
 | `vendor.lock` | The pinned commit of each upstream. |
