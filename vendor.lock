@@ -1,4 +1,4 @@
 # Upstream pins for corhub's vendored files. Read and written by bin/vendor-sync.
 # One upstream per line: <name> <url> <commit>
-roadwork https://github.com/2ndcortex-labs/roadwork 33d2ef0388291378cfe0e7b378d6e593c4ee18a7
+roadwork https://github.com/2ndcortex-labs/roadwork 4f208594de6f0cafb577b5b5c0488cf5fb7ec91c
 unlazy https://github.com/Leonxlnx/unlazy 16671491f6679ad9378f52604d3bc2415b4120c7
