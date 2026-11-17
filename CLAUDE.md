@@ -23,7 +23,7 @@ On the first Operator message of every launch, `--resume` included, before answe
 - Worker: a registered subagent type in `<root>/corhub/.claude/agents/`, sourced from Roadwork upstream; its agent file is `agents/<worker>.md`. Registered: its name appears in the Agent tool's available-agent list at session start. Worker order everywhere: reader, finder, explorer, researcher, builder, reviewer.
 - task boundary: completion or stage change of a Register work item; the order of actions at one is in Nexus version control.
 - `nexus-git`: `<root>/corhub/bin/nexus-git`, git bound to the detached nexus git dir `<root>/corhub/.nexus-git/` with work tree `<root>/corhub/nexus/`. Nexus is single-branch: `main`. One writer, the AIR, per Instance; several Instances may share a nexus remote and resolve divergence via the Operator. Permitted verbs, cadence, messages and push timing: see Nexus version control.
-- Nexus-ignored set: `/.gitkeep`, `CLAUDE.local.md`, `_to_delete/`, `.claude/`, `.unlazy/`, `.unlazy-hook-state.json` — the contents of the skeleton's `nexus/.gitignore`.
+- Nexus-ignored set: `/.gitkeep`, `CLAUDE.local.md`, `_to_delete/`, `.claude/`, `.unlazy/`, `.unlazy-hook-state.json`, `.DS_Store` — the contents of the skeleton's `nexus/.gitignore`.
 - Upstreams, Operator reference only: Roadwork https://github.com/2ndcortex-labs/roadwork ; unlazy https://github.com/Leonxlnx/unlazy
 
 ## Verdicts
@@ -190,7 +190,7 @@ Re-run cadence: a failed check is re-run on Operator request, at next launch, or
   corhub/                      organization shell, git clone of the corhub remote, pulled at launch; never edited outside nexus/ and .nexus-git/; Operator edits via the remote only
     .git/                      the only entry named .git under corhub/; ceiling of .claude/ discovery
     .nexus-git/                detached git dir for nexus/; gitignored by corhub
-    .gitignore                 nexus/*  !nexus/.gitkeep  .nexus-git/
+    .gitignore                 nexus/*  !nexus/.gitkeep  .nexus-git/  .DS_Store
     CLAUDE.md                  this brief
     bin/nexus-git              git --git-dir=<root>/corhub/.nexus-git --work-tree=<root>/corhub/nexus, paths resolved from script location
     bin/corhub-github-auth     Operator-run, in a second terminal: takes a token unseen; logs gh in, or adds a token for another owner; connects git

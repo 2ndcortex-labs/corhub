@@ -4,3 +4,4 @@ _to_delete/
 .claude/
 .unlazy/
 .unlazy-hook-state.json
+.DS_Store
