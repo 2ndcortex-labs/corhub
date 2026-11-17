@@ -15,7 +15,7 @@ A project's own files do not live in this repository. They live in a separate re
     bin/               nexus-git, vendor-sync
     skeleton/          templates copied into a new project
     nexus/             the project; Claude Code is launched here
-  <code repos>/        the project's code repositories, beside corhub
+  <target repos>/      the repositories this project works on, beside corhub
 ```
 
 `<root>` is any folder. One `<root>` is one installation of one project.
@@ -55,8 +55,8 @@ The session accepts only those two kinds of repository: a new one holding just `
 ## Day to day
 
 - Always launch from `<root>/corhub/nexus/`. Add `--resume` to continue an earlier session.
-- To add a code repository to the project, type `/corhub-target-repo-setup`. The session checks that your token covers it, tells you how to widen the token if not, clones it beside `corhub/`, and asks whether to keep it attached to the project permanently.
-- Claude Code asks permission the first time a session reaches a folder outside `nexus/`, such as a code repository. Approve what the work needs.
+- To add a target repository (a repository this project will work on), type `/corhub-target-repo-setup`. The session checks that your token can both read and update it, tells you how to widen the token if not, clones it beside `corhub/`, and asks whether to keep it attached to the project permanently.
+- Claude Code asks permission the first time a session reaches a folder outside `nexus/`, such as a target repository. Approve what the work needs.
 - Each launch pulls corhub and runs eight startup checks on your first message, before any work. If one fails, the session says which and what it needs from you.
 - Never edit files in `corhub/` on an installed machine, apart from `nexus/`. The next launch detects the change and halts. Changes to corhub are made in this repository and reach every installation by pull.
 
