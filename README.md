@@ -22,31 +22,29 @@ A project's own files do not live in this repository. They live in a separate re
 
 ## Set up a new project
 
-You need the GitHub CLI, `gh`, on the machine. The session uses it to reach your repositories and never handles the token itself.
-
 1. Create an empty GitHub repository for the project. Its name must begin with `nexus-`, for example `nexus-billing`.
-2. Create a fine-grained GitHub token limited to that repository, plus any code repositories the session should push to, with Contents read and write, and an expiry.
-3. Give the token to `gh`, in an ordinary terminal:
-   ```
-   gh auth login --with-token
-   ```
-   Paste the token, press Enter, then Ctrl-D (on Windows, Ctrl-Z then Enter). Then:
-   ```
-   gh auth setup-git
-   ```
-   Never paste a token into a Claude Code session. Sessions are saved as plain text.
-4. Pick a `<root>` folder and clone corhub into it:
+2. Pick a `<root>` folder and clone corhub into it:
    ```
    git clone https://github.com/2ndcortex-labs/corhub <root>/corhub
    ```
-5. Copy the beacon into place:
+3. Copy the beacon into place:
    ```
    cp <root>/corhub/skeleton/beacon/CLAUDE.md <root>/CLAUDE.md
    ```
-6. Launch:
+4. Launch, and send any message:
    ```
    cd <root>/corhub/nexus && claude
    ```
+
+The session then walks you through the rest. It asks for the repository URL. If the GitHub CLI (`gh`) is missing it offers to install it. If `gh` is not logged in, it tells you which repository to make a token for and gives you one command to run in a second terminal:
+
+```
+<root>/corhub/bin/corhub-login
+```
+
+That command asks for the token without showing it and finishes the setup. Go back to the session and say "done".
+
+The token should be fine-grained, limited to the project repository, with Contents read and write and an expiry. Never paste a token into a Claude Code session; sessions are saved as plain text.
 
 The session runs its startup checks on your first message, whatever that message is. On first launch it asks for the `nexus-` repository URL, sets up the project's git, copies the skeleton into `nexus/`, and pushes. Do not create anything in `nexus/` yourself beforehand.
 
@@ -81,6 +79,7 @@ From inside `nexus/`, a bare `git` command addresses corhub, not the project. Us
 | `.claude/agents/` | Six subagents: reader, finder, explorer, researcher, builder, reviewer. |
 | `.claude/output-styles/` | The "Terse bullets" response style. Select it once per installation with `/output-style Terse bullets`. |
 | `bin/nexus-git` | Git wrapper for the project repository. |
+| `bin/corhub-login` | Run by you in a second terminal: takes a GitHub token unseen and logs `gh` in. |
 | `bin/vendor-sync` | Keeps the vendored upstream files in step with `vendor.lock`. |
 | `vendor.lock` | The pinned commit of each upstream. |
 | `skeleton/nexus/` | Starting content for a new project, including the Roadwork register. |

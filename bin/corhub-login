@@ -1,0 +1,40 @@
+#!/bin/sh
+# Give a GitHub token to the GitHub CLI and hook git up to it.
+# Run this in an ordinary terminal, never inside a Claude Code session.
+# The token is read without being shown and is not written anywhere by this script.
+set -eu
+
+if ! command -v gh >/dev/null 2>&1; then
+  echo "The GitHub CLI (gh) is not installed or not on the PATH." >&2
+  echo "Install it, or ask the session to install it, then run this again." >&2
+  exit 1
+fi
+
+if [ ! -t 0 ]; then
+  echo "Run this directly in a terminal so it can ask for the token." >&2
+  exit 1
+fi
+
+restore() { stty echo 2>/dev/null || true; }
+trap restore EXIT INT TERM
+
+printf 'Paste the token and press Enter (it will not be shown): '
+stty -echo
+IFS= read -r token
+restore
+printf '\n'
+
+if [ -z "$token" ]; then
+  echo "No token was entered. Nothing changed." >&2
+  exit 1
+fi
+
+if ! printf '%s\n' "$token" | gh auth login --with-token; then
+  token=''
+  echo "GitHub did not accept the token. Nothing changed. Check the token and run this again." >&2
+  exit 1
+fi
+token=''
+
+gh auth setup-git
+echo "Logged in. Return to the session and say: done"

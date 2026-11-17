@@ -23,11 +23,10 @@ Invoking this skill is an Operator instruction to clone the repository, and so a
 
 ## 2. Check credentials
 
-Run `gh auth status`. If `gh` is missing or not logged in, give the setup steps and wait for "retry":
+Run `gh auth status`.
 
-1. In a second terminal, outside this session: `gh auth login --with-token`
-2. Paste the token, press Enter, then Ctrl-D (on Windows, Ctrl-Z then Enter).
-3. `gh auth setup-git`
+- `gh` missing: offer to install it; on yes, install it for the current user as the brief's Credentials rule describes.
+- Not logged in: ask the Operator to run one command in a second terminal, outside this session, and give it as a full path ready to paste: `<root>/corhub/bin/corhub-login`. It asks for the token without showing it and finishes the setup. When the Operator says "done", run `gh auth status` again yourself.
 
 ## 3. Check access to this repository
 
@@ -36,12 +35,12 @@ Run `gh auth status`. If `gh` is missing or not logged in, give the setup steps 
 
 Report what the current token can do with this repository: nothing, read only, or read and push.
 
-If it cannot do what the Operator wants, the token's scope has to change. Explain, then wait for "retry":
+If it cannot do what the Operator wants, the token's scope has to change. Explain, naming the repository, then wait for "done" and check again yourself:
 
 - **Widen the existing token.** On GitHub: Settings, Developer settings, Personal access tokens, Fine-grained tokens, open the token, Edit. Under Repository access add this repository. Under Permissions set Contents to read and write. Save. The token's value does not change, so nothing is re-entered on this machine.
-- **Or replace it.** Create a new fine-grained token covering the project's `nexus-` repository and every code repository the session should reach, Contents read and write, with an expiry. Then repeat the three steps in section 2 with the new token.
+- **Or replace it.** Create a new fine-grained token covering the project's `nexus-` repository and every code repository the session should reach, Contents read and write, with an expiry. Then run `<root>/corhub/bin/corhub-login` again in the second terminal and enter the new token.
 
-A token regenerated on GitHub has a new value and must also be re-entered with the steps in section 2.
+A token regenerated on GitHub has a new value and must also be re-entered the same way.
 
 If the Operator wants read access only, record that and continue; pushes to this repository will fail until the scope is widened.
 
