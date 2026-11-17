@@ -22,16 +22,28 @@ A project's own files do not live in this repository. They live in a separate re
 
 ## Set up a new project
 
+You need the GitHub CLI, `gh`, on the machine. The session uses it to reach your repositories and never handles the token itself.
+
 1. Create an empty GitHub repository for the project. Its name must begin with `nexus-`, for example `nexus-billing`.
-2. Pick a `<root>` folder and clone corhub into it:
+2. Create a fine-grained GitHub token limited to that repository, plus any code repositories the session should push to, with Contents read and write, and an expiry.
+3. Give the token to `gh`, in an ordinary terminal:
+   ```
+   gh auth login --with-token
+   ```
+   Paste the token, press Enter, then Ctrl-D (on Windows, Ctrl-Z then Enter). Then:
+   ```
+   gh auth setup-git
+   ```
+   Never paste a token into a Claude Code session. Sessions are saved as plain text.
+4. Pick a `<root>` folder and clone corhub into it:
    ```
    git clone https://github.com/2ndcortex-labs/corhub <root>/corhub
    ```
-3. Copy the beacon into place:
+5. Copy the beacon into place:
    ```
    cp <root>/corhub/skeleton/beacon/CLAUDE.md <root>/CLAUDE.md
    ```
-4. Launch:
+6. Launch:
    ```
    cd <root>/corhub/nexus && claude
    ```
@@ -43,6 +55,7 @@ To join a project that already exists, do the same steps and give the existing `
 ## Day to day
 
 - Always launch from `<root>/corhub/nexus/`. Add `--resume` to continue an earlier session.
+- To add a code repository to the project, type `/corhub-target-repo-setup`. The session checks that your token covers it, tells you how to widen the token if not, clones it beside `corhub/`, and asks whether to keep it attached to the project permanently.
 - Claude Code asks permission the first time a session reaches a folder outside `nexus/`, such as a code repository. Approve what the work needs.
 - Each launch pulls corhub and runs eight startup checks on your first message, before any work. If one fails, the session says which and what it needs from you.
 - Never edit files in `corhub/` on an installed machine, apart from `nexus/`. The next launch detects the change and halts. Changes to corhub are made in this repository and reach every installation by pull.
@@ -64,7 +77,7 @@ From inside `nexus/`, a bare `git` command addresses corhub, not the project. Us
 |---|---|
 | `CLAUDE.md` | The brief. Defines the startup checks, what the session may edit, and how project commits and pushes happen. |
 | `.claude/rules/` | The Roadwork constitution. |
-| `.claude/skills/` | Nineteen Roadwork skills and the unlazy skill. `MANIFEST` lists them. |
+| `.claude/skills/` | Nineteen Roadwork skills, the unlazy skill, and corhub's own `corhub-target-repo-setup`. `MANIFEST` lists them. |
 | `.claude/agents/` | Six subagents: reader, finder, explorer, researcher, builder, reviewer. |
 | `.claude/output-styles/` | The "Terse bullets" response style. Select it once per installation with `/output-style Terse bullets`. |
 | `bin/nexus-git` | Git wrapper for the project repository. |

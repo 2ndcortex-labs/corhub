@@ -68,6 +68,8 @@ write_manifest() {
     for d in .claude/skills/roadwork-*/; do basename "$d"; done | LC_ALL=C sort
     echo '#adjacent'
     echo unlazy
+    echo '#corhub'
+    for d in .claude/skills/corhub-*/; do [ -d "$d" ] && basename "$d"; done | LC_ALL=C sort
   } > .claude/skills/MANIFEST
 }
 
