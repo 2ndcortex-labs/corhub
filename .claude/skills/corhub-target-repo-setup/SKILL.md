@@ -5,7 +5,7 @@ when_to_use: Use when the user says /corhub-target-repo-setup, "add a repo", "se
 argument-hint: "[<repository URL>]"
 ---
 
-Sets up one Target Repo for this Instance. Usable any time after initialization. The brief (`corhub/CLAUDE.md`) governs throughout; this skill adds no authority and relaxes no rule. In everything written for the Operator, use plain names, never step codes.
+Sets up one Target Repo for this Instance. Usable any time after initialization; the session also runs it by itself when a new project finishes initialization with no code repository set. The brief (`corhub/CLAUDE.md`) governs throughout; this skill adds no authority and relaxes no rule. In everything written for the Operator, use plain names, never step codes.
 
 Invoking this skill is an Operator instruction to clone the repository, and so a naming: it gives edit authority over that repository for this session.
 
@@ -17,6 +17,7 @@ Invoking this skill is an Operator instruction to clone the repository, and so a
 ## 1. Identify the repository
 
 - Take the URL from the argument, or ask for it.
+- If the Operator says there is no code repository yet, stop here: say that nothing was set up and that `/corhub-target-repo-setup` can be run at any time.
 - Folder name: the repository name without `.git`. The Operator may give another.
 - Refuse, and say why: a folder named `corhub`; a repository whose name begins with `nexus-` (that is a project repository, not a code repository).
 - Target path: `<root>/<folder>`, beside `corhub/`.
@@ -26,7 +27,7 @@ Invoking this skill is an Operator instruction to clone the repository, and so a
 Run `gh auth status`.
 
 - `gh` missing: offer to install it; on yes, install it for the current user as the brief's Credentials rule describes.
-- Not logged in: ask the Operator to run one command in a second terminal, outside this session, and give it as a full path ready to paste: `<root>/corhub/bin/corhub-login`. It asks for the token without showing it and finishes the setup. When the Operator says "done", run `gh auth status` again yourself.
+- Not logged in: ask the Operator to run one command in a second terminal, outside this session, and give it as a full path ready to paste: `<root>/corhub/bin/corhub-github-auth`. It asks for the token without showing it and finishes the setup. When the Operator says "done", run `gh auth status` again yourself.
 
 ## 3. Check access to this repository
 
@@ -38,7 +39,7 @@ Report what the current token can do with this repository: nothing, read only, o
 If it cannot do what the Operator wants, the token's scope has to change. Explain, naming the repository, then wait for "done" and check again yourself:
 
 - **Widen the existing token.** On GitHub: Settings, Developer settings, Personal access tokens, Fine-grained tokens, open the token, Edit. Under Repository access add this repository. Under Permissions set Contents to read and write. Save. The token's value does not change, so nothing is re-entered on this machine.
-- **Or replace it.** Create a new fine-grained token covering the project's `nexus-` repository and every code repository the session should reach, Contents read and write, with an expiry. Then run `<root>/corhub/bin/corhub-login` again in the second terminal and enter the new token.
+- **Or replace it.** Create a new fine-grained token covering the project's `nexus-` repository and every code repository the session should reach, Contents read and write, with an expiry. Then run `<root>/corhub/bin/corhub-github-auth` again in the second terminal and enter the new token.
 
 A token regenerated on GitHub has a new value and must also be re-entered the same way.
 

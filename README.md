@@ -8,7 +8,7 @@ A project's own files do not live in this repository. They live in a separate re
 
 ```
 <root>/
-  CLAUDE.md            beacon: stops a session launched from the wrong folder
+  CLAUDE.md            beacon: stops a wrong-folder launch; makes sure the brief is loaded
   corhub/              clone of this repository
     CLAUDE.md          the brief: operating rules for the session
     .claude/           rules, skills, agents, output style
@@ -22,7 +22,7 @@ A project's own files do not live in this repository. They live in a separate re
 
 ## Set up a new project
 
-1. Create an empty GitHub repository for the project. Its name must begin with `nexus-`, for example `nexus-billing`.
+1. Create a GitHub repository for the project that holds a README and nothing else: tick "Add a README file", and leave the `.gitignore` template and the licence at None. Its name must begin with `nexus-`, for example `nexus-billing`.
 2. Pick a `<root>` folder and clone corhub into it:
    ```
    git clone https://github.com/2ndcortex-labs/corhub <root>/corhub
@@ -39,7 +39,7 @@ A project's own files do not live in this repository. They live in a separate re
 The session then walks you through the rest. It asks for the repository URL. If the GitHub CLI (`gh`) is missing it offers to install it. If `gh` is not logged in, it tells you which repository to make a token for and gives you one command to run in a second terminal:
 
 ```
-<root>/corhub/bin/corhub-login
+<root>/corhub/bin/corhub-github-auth
 ```
 
 That command asks for the token without showing it and finishes the setup. Go back to the session and say "done".
@@ -49,6 +49,8 @@ The token should be fine-grained, limited to the project repository, with Conten
 The session runs its startup checks on your first message, whatever that message is. On first launch it asks for the `nexus-` repository URL, sets up the project's git, copies the skeleton into `nexus/`, and pushes. Do not create anything in `nexus/` yourself beforehand.
 
 To join a project that already exists, do the same steps and give the existing `nexus-` URL. The session checks the project out and asks you to relaunch.
+
+The session accepts only those two kinds of repository: a new one holding just `README.md`, or an existing corhub project. Anything else is refused, with a note on what it found.
 
 ## Day to day
 
@@ -79,11 +81,11 @@ From inside `nexus/`, a bare `git` command addresses corhub, not the project. Us
 | `.claude/agents/` | Six subagents: reader, finder, explorer, researcher, builder, reviewer. |
 | `.claude/output-styles/` | The "Terse bullets" response style. Select it once per installation with `/output-style Terse bullets`. |
 | `bin/nexus-git` | Git wrapper for the project repository. |
-| `bin/corhub-login` | Run by you in a second terminal: takes a GitHub token unseen and logs `gh` in. |
+| `bin/corhub-github-auth` | Run by you in a second terminal: takes a GitHub token unseen and logs `gh` in. |
 | `bin/vendor-sync` | Keeps the vendored upstream files in step with `vendor.lock`. |
 | `vendor.lock` | The pinned commit of each upstream. |
 | `skeleton/nexus/` | Starting content for a new project, including the Roadwork register. |
-| `skeleton/beacon/CLAUDE.md` | The beacon template. |
+| `skeleton/beacon/CLAUDE.md` | The beacon template. Copied to `<root>/CLAUDE.md` at setup; re-copy it when the session reports that yours is out of date. |
 | `nexus/` | Empty apart from `.gitkeep`. The project is checked out here on an installed machine. |
 | `reference/repos/` | Read-only snapshots for reference. |
 
