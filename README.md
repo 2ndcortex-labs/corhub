@@ -56,6 +56,7 @@ The session accepts only those two kinds of repository: a new one holding just `
 
 - Always launch from `<root>/corhub/nexus/`. Add `--resume` to continue an earlier session.
 - To add a target repository (a repository this project will work on), type `/corhub-target-repo-setup`. The session checks that your token can both read and update it, tells you how to widen the token if not, clones it beside `corhub/`, and asks whether to keep it attached to the project permanently.
+- Repositories under more than one GitHub owner are supported. A fine-grained token belongs to one owner, so each additional owner gets its own token; the session tells you when one is needed and gives you the command.
 - Claude Code asks permission the first time a session reaches a folder outside `nexus/`, such as a target repository. Approve what the work needs.
 - Each launch pulls corhub and runs eight startup checks on your first message, before any work. If one fails, the session says which and what it needs from you.
 - Never edit files in `corhub/` on an installed machine, apart from `nexus/`. The next launch detects the change and halts. Changes to corhub are made in this repository and reach every installation by pull.
@@ -81,7 +82,8 @@ From inside `nexus/`, a bare `git` command addresses corhub, not the project. Us
 | `.claude/agents/` | Six subagents: reader, finder, explorer, researcher, builder, reviewer. |
 | `.claude/output-styles/` | The "Terse bullets" response style. Select it once per installation with `/output-style Terse bullets`. |
 | `bin/nexus-git` | Git wrapper for the project repository. |
-| `bin/corhub-github-auth` | Run by you in a second terminal: takes a GitHub token unseen and logs `gh` in. |
+| `bin/corhub-github-auth` | Run by you in a second terminal: takes a GitHub token unseen. With no argument it logs `gh` in for the project repository's owner; with a repository URL it adds a token for a repository under another owner. |
+| `bin/corhub-git-credential` | Used by git, not by you: hands over the right token for a repository under another owner. |
 | `bin/vendor-sync` | Keeps the vendored upstream files in step with `vendor.lock`. |
 | `vendor.lock` | The pinned commit of each upstream. |
 | `skeleton/nexus/` | Starting content for a new project, including the Roadwork register. |

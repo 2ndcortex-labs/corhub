@@ -1,40 +1,111 @@
 #!/bin/sh
-# Give a GitHub token to the GitHub CLI and hook git up to it.
-# Run this in an ordinary terminal, never inside a Claude Code session.
-# The token is read without being shown and is not written anywhere by this script.
+# GitHub access for a corhub installation. Run in an ordinary terminal,
+# never inside a Claude Code session. Tokens are read without being shown.
+#
+#   corhub-github-auth                    log in for the project repository's owner
+#   corhub-github-auth <repository URL>   add a token for a repository under another owner
+#   corhub-github-auth --hookup           (re)connect git to the stored tokens; asks for nothing
+#   corhub-github-auth --check            exit 0 if git is connected, 1 if not
 set -eu
 
-if ! command -v gh >/dev/null 2>&1; then
-  echo "The GitHub CLI (gh) is not installed or not on the PATH." >&2
-  echo "Install it, or ask the session to install it, then run this again." >&2
-  exit 1
-fi
+here="$(cd "$(dirname "$0")" && pwd -P)"
+dir="${XDG_CONFIG_HOME:-$HOME/.config}/corhub"
+helper="$dir/corhub-git-credential"
+key="credential.https://github.com.helper"
 
-if [ ! -t 0 ]; then
-  echo "Run this directly in a terminal so it can ask for the token." >&2
-  exit 1
-fi
+need_gh() {
+  if ! command -v gh >/dev/null 2>&1; then
+    echo "The GitHub CLI (gh) is not installed or not on the PATH." >&2
+    echo "Install it, or ask the session to install it, then run this again." >&2
+    exit 1
+  fi
+}
 
-restore() { stty echo 2>/dev/null || true; }
-trap restore EXIT INT TERM
+hookup() {
+  need_gh
+  mkdir -p "$dir"; chmod 700 "$dir"
+  cp "$here/corhub-git-credential" "$helper"; chmod 700 "$helper"
+  gh auth setup-git
+  # Put the per-owner helper ahead of gh's, keeping whatever gh set.
+  others="$(git config --global --get-all "$key" 2>/dev/null | grep -v -e '^$' -e 'corhub-git-credential' || true)"
+  git config --global --unset-all "$key" 2>/dev/null || true
+  git config --global --add "$key" ""
+  git config --global --add "$key" "$helper"
+  printf '%s\n' "$others" | while IFS= read -r h; do
+    [ -z "$h" ] || git config --global --add "$key" "$h"
+  done
+}
 
-printf 'Paste the token and press Enter (it will not be shown): '
-stty -echo
-IFS= read -r token
-restore
-printf '\n'
+check() {
+  [ -x "$helper" ] || return 1
+  first="$(git config --global --get-all "$key" 2>/dev/null | grep -v '^$' | head -n 1 || true)"
+  [ "$first" = "$helper" ] || return 1
+  git config --global --get-all "$key" | grep -q 'gh auth git-credential' || return 1
+}
 
-if [ -z "$token" ]; then
-  echo "No token was entered. Nothing changed." >&2
-  exit 1
-fi
+read_token() {
+  if [ ! -t 0 ]; then
+    echo "Run this directly in a terminal so it can ask for the token." >&2
+    exit 1
+  fi
+  trap 'stty echo 2>/dev/null || true' EXIT INT TERM
+  printf 'Paste the token and press Enter (it will not be shown): '
+  stty -echo
+  IFS= read -r token
+  stty echo 2>/dev/null || true
+  printf '\n'
+  if [ -z "$token" ]; then
+    echo "No token was entered. Nothing changed." >&2
+    exit 1
+  fi
+}
 
-if ! printf '%s\n' "$token" | gh auth login --with-token; then
-  token=''
-  echo "GitHub did not accept the token. Nothing changed. Check the token and run this again." >&2
-  exit 1
-fi
-token=''
-
-gh auth setup-git
-echo "Logged in. Return to the session and say: done"
+case "${1:-}" in
+  --hookup)
+    hookup
+    echo "git is connected to the stored GitHub tokens."
+    ;;
+  --check)
+    if check; then echo "connected"; else echo "not connected"; exit 1; fi
+    ;;
+  "")
+    need_gh
+    read_token
+    if ! printf '%s\n' "$token" | gh auth login --with-token; then
+      token=''
+      echo "GitHub did not accept the token. Nothing changed. Check the token and run this again." >&2
+      exit 1
+    fi
+    token=''
+    hookup
+    echo "Logged in. Return to the session and say: done"
+    ;;
+  -*)
+    echo "Unknown option: $1" >&2
+    exit 1
+    ;;
+  *)
+    need_gh
+    path="$(printf '%s' "$1" | sed -e 's#^https://[^/]*github\.com/##' -e 's#^git@github\.com:##' -e 's#\.git$##' -e 's#/*$##')"
+    owner="${path%%/*}"; repo="${path#*/}"
+    if [ -z "$owner" ] || [ -z "$repo" ] || [ "$owner" = "$path" ] || [ "${repo#*/}" != "$repo" ]; then
+      echo "That does not look like a GitHub repository address: $1" >&2
+      exit 1
+    fi
+    echo "Token for repositories owned by: $owner"
+    echo "It must be a fine-grained token whose resource owner is $owner."
+    read_token
+    hookup
+    printf 'protocol=https\nhost=github.com\nusername=corhub.%s\npassword=%s\n\n' "$owner" "$token" | "$helper" store
+    token=''
+    url="https://corhub.$owner@github.com/$owner/$repo.git"
+    if GIT_TERMINAL_PROMPT=0 git ls-remote "$url" >/dev/null 2>&1; then
+      echo "Stored. $owner/$repo can be read with it. Return to the session and say: done"
+    else
+      printf 'protocol=https\nhost=github.com\nusername=corhub.%s\n\n' "$owner" | "$helper" erase
+      echo "That token could not read $owner/$repo, so it was not kept." >&2
+      echo "Check that its resource owner is $owner and that it covers $repo, then run this again." >&2
+      exit 1
+    fi
+    ;;
+esac
