@@ -31,7 +31,11 @@ A project's own files do not live in this repository. They live in a separate re
    ```
    cp <root>/corhub/skeleton/beacon/CLAUDE.md <root>/CLAUDE.md
    ```
-4. Launch, and send any message:
+4. Copy the machine settings into place:
+   ```
+   cp <root>/corhub/skeleton/settings/settings.local.json <root>/corhub/.claude/settings.local.json
+   ```
+5. Launch, and send any message:
    ```
    cd <root>/corhub/nexus && claude
    ```
@@ -59,7 +63,7 @@ The session accepts only those two kinds of repository: a new one holding just `
 - Repositories under more than one GitHub owner are supported. A fine-grained token belongs to one owner, so each additional owner gets its own token; the session tells you when one is needed and gives you the command.
 - Claude Code asks permission the first time a session reaches a folder outside `nexus/`, such as a target repository. Approve what the work needs.
 - Each launch pulls corhub and runs eight startup checks on your first message, before any work. If one fails, the session says which and what it needs from you.
-- Never edit files in `corhub/` on an installed machine, apart from `nexus/`. The next launch detects the change and halts. Changes to corhub are made in this repository and reach every installation by pull.
+- Never edit files in `corhub/` on an installed machine, apart from `nexus/`. Claude Code itself keeps one file there, `corhub/.claude/settings.local.json`; leave it in place. The next launch detects the change and halts. Changes to corhub are made in this repository and reach every installation by pull.
 
 ## How the project is versioned
 
@@ -80,13 +84,14 @@ From inside `nexus/`, a bare `git` command addresses corhub, not the project. Us
 | `.claude/rules/` | The Roadwork constitution. |
 | `.claude/skills/` | Nineteen Roadwork skills, the unlazy skill, and corhub's own `corhub-target-repo-setup`. `MANIFEST` lists them. |
 | `.claude/agents/` | Six subagents: reader, finder, explorer, researcher, builder, reviewer. |
-| `.claude/output-styles/` | The "Terse bullets" response style. Select it once per installation with `/output-style Terse bullets`. |
+| `.claude/output-styles/` | The "Terse bullets" response style. The machine settings file selects it; change it in a session with `/output-style`. |
 | `bin/nexus-git` | Git wrapper for the project repository. |
 | `bin/corhub-github-auth` | Run by you in a second terminal: takes a GitHub token unseen. With no argument it logs `gh` in for the project repository's owner; with a repository URL it adds a token for a repository under another owner. |
 | `bin/corhub-git-credential` | Used by git, not by you: hands over the right token for a repository under another owner. |
 | `bin/vendor-sync` | Keeps the vendored upstream files in step with `vendor.lock`. |
 | `vendor.lock` | The pinned commit of each upstream. |
 | `skeleton/nexus/` | Starting content for a new project, including the Roadwork register. |
+| `skeleton/settings/settings.local.json` | Starting settings for a machine: selects the "Terse bullets" style. Copied to `.claude/settings.local.json` at setup; Claude Code then keeps your style choice and folder approvals in that copy, which git ignores. |
 | `skeleton/beacon/CLAUDE.md` | The beacon template. Copied to `<root>/CLAUDE.md` at setup; re-copy it when the session reports that yours is out of date. |
 | `nexus/` | Empty apart from `.gitkeep`. The project is checked out here on an installed machine. |
 | `reference/repos/` | Read-only snapshots for reference. |
