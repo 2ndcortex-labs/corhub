@@ -28,7 +28,7 @@ When you open, say which one you mean, for example: "The project repository `nex
 - Take the URL from the argument, or ask for it in the words above.
 - If the Operator says there is none for now, stop here: say that nothing was set up and that `/corhub-target-repo-setup` can be run at any time.
 - Folder name: the repository name without `.git`. The Operator may give another.
-- Refuse, and say why: a folder named `corhub`; a repository whose name begins with `nexus-` (that is a project repository, not a target repository).
+- Refuse, and say why: a folder named `corhub` or `reference`; a repository whose name begins with `nexus-` (that is a project repository, not a target repository).
 - Target path: `<root>/<folder>`, beside `corhub/`.
 - Owner: the first part of the address after `github.com/`. Compare it with the project repository's owner, read from `nexus-git remote get-url origin`. Compare without regard to letter case.
   - **Same owner:** the token that serves the project repository can be widened to cover this one. Git address to use below: the plain URL.
